@@ -1,0 +1,29 @@
+DUB SIRENE – VST3 / AU  ·  GeyserHaus e.V.
+==========================================
+
+Enthalten
+- Dub Sirene        (Instrument: Sirene + Federhall + Bandecho)
+- Dubasco Tape Echo (Effekt: Bandecho + Effekt-Leiste für jede Spur)
+- Standalone-Versionen beider Plugins
+
+MAC
+1. "Dub Sirene.vst3" und "Dubasco Tape Echo.vst3" kopieren nach
+   ~/Library/Audio/Plug-Ins/VST3/
+   (Logic / GarageBand: die .component-Dateien nach ~/Library/Audio/Plug-Ins/Components/)
+2. Weil die Plugins nicht von Apple notarisiert sind, einmal im Terminal:
+   xattr -dr com.apple.quarantine ~/Library/Audio/Plug-Ins/VST3/*.vst3 ~/Library/Audio/Plug-Ins/Components/*.component
+3. DAW neu starten bzw. Plugins neu scannen.
+
+WINDOWS
+1. Die beiden .vst3-Ordner kopieren nach  C:\Program Files\Common Files\VST3\
+2. DAW neu starten bzw. Plugins neu scannen.
+
+BEDIENUNG IM DAW
+- MIDI-Note spielen = SPEED gedrückt (Sirene heult). Sustain-Pedal = HOLD.
+- "Keyboard Plays Pitch" (Parameter): Tasten bestimmen die Tonhöhe.
+- "Sync to Host Tempo" (Parameter): DELAY TIME folgt dem Song-Tempo (Achtel).
+- Alle Regler sind automatisierbar und per MIDI-Learn des DAWs steuerbar.
+- Tasten bei angeklicktem Plugin-Fenster: Leertaste = SPEED, 1–4 Wellenform,
+  H Hold, B Tape Stop, E Dub Throw, F Runaway, T Tap, P Echo an/aus.
+- Tape Echo als Effekt: INPUT = Pegel ins Echo, "Dry Signal" aus = nur Echo
+  (für Send/Return-Kanäle).

@@ -1,0 +1,80 @@
+name: Build plugins
+
+on:
+  push:
+    branches: [ main ]
+    tags: [ 'v*' ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: macos-14
+            name: Mac
+          - os: windows-latest
+            name: Windows
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure (Mac, Universal: Apple Silicon + Intel)
+        if: runner.os == 'macOS'
+        run: cmake -S . -B build -G Xcode -DCMAKE_OSX_ARCHITECTURES="arm64;x86_64"
+
+      - name: Configure (Windows)
+        if: runner.os == 'Windows'
+        run: cmake -S . -B build -G "Visual Studio 17 2022" -A x64
+
+      - name: Build
+        run: cmake --build build --config Release --parallel 4 --target DubSirene_All DubTapeEcho_All
+
+      - name: Ad-hoc sign (Mac)
+        if: runner.os == 'macOS'
+        run: |
+          for f in build/*_artefacts/Release/VST3/*.vst3 build/*_artefacts/Release/AU/*.component build/*_artefacts/Release/Standalone/*.app; do
+            codesign --force --deep --sign - "$f"
+          done
+
+      - name: Collect
+        shell: bash
+        run: |
+          mkdir -p out/VST3 out/Standalone
+          cp -R build/*_artefacts/Release/VST3/*.vst3 out/VST3/
+          if [ "$RUNNER_OS" == "macOS" ]; then
+            mkdir -p out/AU && cp -R build/*_artefacts/Release/AU/*.component out/AU/
+            cp -R build/*_artefacts/Release/Standalone/*.app out/Standalone/
+          else
+            cp build/*_artefacts/Release/Standalone/*.exe out/Standalone/
+          fi
+          cp INSTALL.txt out/
+
+      - name: Zip (Mac)
+        if: runner.os == 'macOS'
+        run: cd out && ditto -c -k --sequesterRsrc --keepParent . ../Dub-Sirene-VST-${{ matrix.name }}.zip
+
+      - name: Zip (Windows)
+        if: runner.os == 'Windows'
+        run: Compress-Archive -Path out\* -DestinationPath Dub-Sirene-VST-${{ matrix.name }}.zip
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Dub-Sirene-VST-${{ matrix.name }}
+          path: Dub-Sirene-VST-${{ matrix.name }}.zip
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/v')
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: dist
+          merge-multiple: true
+      - uses: softprops/action-gh-release@v2
+        with:
+          files: dist/*.zip
