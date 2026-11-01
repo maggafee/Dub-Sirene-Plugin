@@ -67,7 +67,7 @@ jobs:
   release:
     needs: build
     runs-on: ubuntu-latest
-    if: startsWith(github.ref, 'refs/tags/v')
+    if: github.event_name == 'push'
     permissions:
       contents: write
     steps:
@@ -77,4 +77,11 @@ jobs:
           merge-multiple: true
       - uses: softprops/action-gh-release@v2
         with:
+          tag_name: ${{ startsWith(github.ref, 'refs/tags/') && github.ref_name || 'v1.2.1' }}
+          name: Dub Sirene VST3 / AU ${{ startsWith(github.ref, 'refs/tags/') && github.ref_name || 'v1.2.1' }}
+          body: |
+            Mac (Universal: Apple Silicon + Intel) und Windows.
+            Installation: siehe INSTALL.txt in jedem ZIP.
+          make_latest: true
+          overwrite_files: true
           files: dist/*.zip
